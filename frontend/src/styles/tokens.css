@@ -1,0 +1,22 @@
+@font-face {
+  font-family: Manrope;
+  src: url("/assets/fonts/manrope.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+}
+@theme {
+  --color-canvas: #000000;
+  --color-surface: #131313;
+  --color-panel: #0a0a0a;
+  --color-accent: #0066ff;
+  --color-muted: #909090;
+  --color-line: #bcbcbc;
+  --font-sans: Manrope, Arial, Helvetica, sans-serif;
+  --radius-card: 12px;
+}
+:root {
+  color-scheme: dark;
+  --content-width: 1340px;
+  --header-height: 82px;
+}

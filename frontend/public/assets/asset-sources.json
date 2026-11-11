@@ -1,0 +1,170 @@
+[
+  {
+    "file": "images/capability-1.webp",
+    "source": "capabilities-full.png",
+    "crop": [
+      529,
+      509,
+      1016,
+      968
+    ],
+    "size": [
+      487,
+      459
+    ]
+  },
+  {
+    "file": "images/capability-2.webp",
+    "source": "capabilities-full.png",
+    "crop": [
+      1170,
+      510,
+      1657,
+      969
+    ],
+    "size": [
+      487,
+      459
+    ]
+  },
+  {
+    "file": "images/capability-3.webp",
+    "source": "capabilities-full.png",
+    "crop": [
+      1810,
+      510,
+      2297,
+      969
+    ],
+    "size": [
+      487,
+      459
+    ]
+  },
+  {
+    "file": "images/story-1.webp",
+    "source": "stories-full.png",
+    "crop": [
+      533,
+      878,
+      952,
+      1272
+    ],
+    "size": [
+      419,
+      394
+    ]
+  },
+  {
+    "file": "images/story-2.webp",
+    "source": "stories-full.png",
+    "crop": [
+      1017,
+      878,
+      1435,
+      1272
+    ],
+    "size": [
+      418,
+      394
+    ]
+  },
+  {
+    "file": "images/story-3.webp",
+    "source": "stories-full.png",
+    "crop": [
+      1502,
+      878,
+      1922,
+      1270
+    ],
+    "size": [
+      420,
+      392
+    ]
+  },
+  {
+    "file": "images/story-4.webp",
+    "source": "stories-full.png",
+    "crop": [
+      1983,
+      878,
+      2404,
+      1270
+    ],
+    "size": [
+      421,
+      392
+    ]
+  },
+  {
+    "file": "images/audience-1.webp",
+    "source": "uses-full.png",
+    "crop": [
+      1942,
+      613,
+      2404,
+      970
+    ],
+    "size": [
+      462,
+      357
+    ]
+  },
+  {
+    "file": "images/audience-2.webp",
+    "source": "uses-full.png",
+    "crop": [
+      1942,
+      1111,
+      2404,
+      1465
+    ],
+    "size": [
+      462,
+      354
+    ]
+  },
+  {
+    "file": "images/audience-3.webp",
+    "source": "use-bottom.png",
+    "crop": [
+      1942,
+      606,
+      2404,
+      965
+    ],
+    "size": [
+      462,
+      359
+    ]
+  },
+  {
+    "file": "brand/wordmark.png",
+    "source": "hero-full.png",
+    "crop": [
+      525,
+      315,
+      781,
+      356
+    ],
+    "size": [
+      256,
+      41
+    ]
+  },
+  {
+    "file": "brand/logo.png",
+    "source": "footer-full.png",
+    "crop": [
+      526,
+      1308,
+      786,
+      1485
+    ],
+    "size": [
+      260,
+      177
+    ]
+  }
+]

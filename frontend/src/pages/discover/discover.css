@@ -1,0 +1,20 @@
+.destination-page h1 {
+  font-size: clamp(32px, 4vw, 56px);
+  font-weight: 400;
+  letter-spacing: -0.04em;
+}
+.destination-page {
+  min-height: 65vh;
+  padding-block: 130px;
+}
+.destination-page > p:not(.eyebrow) {
+  max-width: 520px;
+  color: #aaa;
+  margin: 24px 0 32px;
+  line-height: 1.6;
+}
+@media (max-width: 600px) {
+  .destination-page {
+    padding-block: 90px;
+  }
+}
