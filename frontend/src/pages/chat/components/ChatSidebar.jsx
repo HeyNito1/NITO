@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import Wordmark from "@/components/brand/Wordmark";
 import { chatPath, marketingHome } from "@/services/chatDestination";
 import { useNotice } from "@/context/NoticeContext";
+import ProfileMenu from "./ProfileMenu";
 
 const workspaceItems = [
   ["Library", "library.svg"], ["Images", "images.svg"],
@@ -56,13 +57,10 @@ export default function ChatSidebar({ conversations, activeId, open, onClose, on
         {!conversations.length && <p className="chat-history-empty">Your conversations will appear here.</p>}
         {!!conversations.length && !filtered.length && <p className="chat-history-empty">No matching chats.</p>}
       </div>
-      <div className="chat-sidebar-profile">
+      <ProfileMenu>
         <span aria-hidden="true" className="chat-profile-avatar" />
         <div className="chat-profile-label"><p>User</p><p>NITO FREE</p></div>
-        <button type="button" className="chat-settings-button" aria-label="Account settings" onClick={() => notify("Account settings will be available when accounts launch.")}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m9.5 3-.6 2.3-1.7 1-2.3-.6-2 3.5 1.7 1.7v2.2l-1.7 1.7 2 3.5 2.3-.6 1.7 1 .6 2.3h4.1l.6-2.3 1.7-1 2.3.6 2-3.5-1.7-1.7v-2.2l1.7-1.7-2-3.5-2.3.6-1.7-1-.6-2.3z" stroke="currentColor" strokeWidth="1.5" /><circle cx="11.55" cy="12" r="3.1" stroke="currentColor" strokeWidth="1.5" /></svg>
-        </button>
-      </div>
+      </ProfileMenu>      
     </aside>
   );
 }

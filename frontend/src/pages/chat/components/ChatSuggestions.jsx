@@ -1,3 +1,4 @@
+import BenefitsCard from "./BenefitsCard";
 export default function ChatSuggestions({
   onSuggest,
 }) {
@@ -29,15 +30,7 @@ export default function ChatSuggestions({
         Premium
       </p>
 
-      <details className="chat-benefits">
-        <summary>Benefits</summary>
-
-        <p>
-          NITO plans and account features are coming
-          soon. You can explore chat with demo
-          replies now.
-        </p>
-      </details>
+      <BenefitsCard />
 
       <h2 className="chat-panel-heading">
         Suggestions

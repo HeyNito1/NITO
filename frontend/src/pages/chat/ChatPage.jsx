@@ -10,7 +10,6 @@ import {
 
 import { useChat } from "@/hooks/useChat";
 import { chatPath } from "@/services/chatDestination";
-import { env } from "@/config/env";
 
 import ChatSidebar from "./components/ChatSidebar";
 import ChatSuggestions from "./components/ChatSuggestions";
@@ -21,11 +20,11 @@ import ChatTabs from "./components/ChatTabs";
 import "./chat.css";
 
 const modes = [
-  ["general", "General"],
-  ["research", "Research"],
-  ["writing", "Content"],
-  ["api-platform", "Coding"],
-  ["creatives", "Creative"],
+  ["general", "General", "general"],
+  ["research", "Research", "research"],
+  ["writing", "Content", "content"],
+  ["api-platform", "Coding", "coding"],
+  ["creatives", "Creative", "creative"],
 ];
 
 const emptyDraft = () => ({
@@ -392,24 +391,28 @@ export default function ChatPage() {
                   role="group"
                   aria-label="Choose a chat category"
                 >
-                  {modes.map(([value, label]) => (
+                  {modes.map(([value, label, icon]) => (
                     <button
                       key={value}
                       type="button"
-                      aria-pressed={
-                        category === value
-                      }
+                      aria-pressed={category === value}
                       onClick={() => {
                         setCategory(value);
                         inputRef.current?.focus();
                       }}
-                      className={`chat-mode ${
+                      className={`chat-mode overflow-hidden rounded-[11px] border-0! bg-transparent! p-0! hover:bg-transparent! ${
                         category === value
-                          ? "is-selected"
-                          : ""
+                          ? "ring-1 ring-[#0066ff]"
+                          : "hover:ring-1 hover:ring-[#0066ff]"
                       }`}
                     >
-                      <span>{label}</span>
+                      <img
+                        src={`/assets/icons/chat/modes/${icon}.svg`}
+                        alt=""
+                        draggable={false}
+                        className="block h-full w-full"
+                      />
+                      <span className="sr-only">{label}</span>
                     </button>
                   ))}
                 </div>
@@ -425,10 +428,7 @@ export default function ChatPage() {
               onStop={() =>
                 store.stop(chat.id, tab.id)
               }
-              category={category}
-              onCategoryChange={setCategory}
               inputRef={inputRef}
-              demo={env.useMocks}
             />
           </section>
         )}

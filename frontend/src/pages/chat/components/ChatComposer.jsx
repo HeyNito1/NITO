@@ -12,10 +12,7 @@ export default function ChatComposer({
   onSend,
   busy,
   onStop,
-  category,
-  onCategoryChange,
   inputRef,
-  demo,
 }) {
   const { text, attachments } = draft;
 
@@ -88,32 +85,9 @@ export default function ChatComposer({
         </p>
       )}
 
-      <div className="chat-composer-meta">
-        <label className="flex items-center gap-2">
-          Mode
-          <select
-            aria-label="Chat category"
-            value={category || "general"}
-            onChange={(event) =>
-              onCategoryChange(event.target.value)
-            }
-            className="max-w-36 rounded bg-black py-1 text-[#aaa]"
-            disabled={busy}
-          >
-            <option value="general">General</option>
-            <option value="research">Research</option>
-            <option value="writing">Content</option>
-            <option value="api-platform">Coding</option>
-            <option value="creatives">Creative</option>
-            <option value="advisory">Advisory</option>
-          </select>
-        </label>
-
-        <span>
-          {demo ? "Demo replies · " : ""}
-          Attachments stay local
-        </span>
-      </div>
+        <p className="mb-[10px] text-center text-[14px]! leading-[20px]! text-[#8a8a8a]">
+          NITO can make mistakes. Check important facts!
+        </p>
 
       <form
         onSubmit={submit}

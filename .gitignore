@@ -4,3 +4,4 @@ build/
 !.env.example
 .DS_Store
 config.bat
+frontend-/

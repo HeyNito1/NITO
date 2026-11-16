@@ -4,3 +4,6 @@ dist/
 !.env.example
 .DS_Store
 __MACOSX/
+frontend-/
+
+
