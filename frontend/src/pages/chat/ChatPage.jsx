@@ -1,13 +1,9 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import {
-  useNavigate,
-  useParams,
-} from "react-router";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router";
 
+import { useSettings, useAppearance } from "@/services/settingsStore";
+import { useNotice } from "@/context/NoticeContext";
+import "@/pages/settings/settings.css";
 import { useChat } from "@/hooks/useChat";
 import { chatPath } from "@/services/chatDestination";
 
@@ -34,25 +30,20 @@ const emptyDraft = () => ({
 
 export default function ChatPage() {
   const { chatId } = useParams();
+  const { data: settings } = useSettings();
+  const appearance = useAppearance();
+  const { notify } = useNotice();
   const store = useChat();
   const navigate = useNavigate();
 
-  const chat = store.conversations.find(
-    (item) => item.id === chatId,
-  );
+  const chat = store.conversations.find((item) => item.id === chatId);
 
-  const tab = chat?.tabs.find(
-    (item) => item.id === chat.activeTabId,
-  );
+  const tab = chat?.tabs.find((item) => item.id === chat.activeTabId);
 
-  const [sidebarOpen, setSidebarOpen] =
-    useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] =
-    useState(false);
-  const [newDraft, setNewDraft] =
-    useState(emptyDraft);
-  const [newCategory, setNewCategory] =
-    useState("general");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [newDraft, setNewDraft] = useState(emptyDraft);
+  const [newCategory, setNewCategory] = useState("general");
 
   const inputRef = useRef(null);
   const menuRef = useRef(null);
@@ -60,9 +51,7 @@ export default function ChatPage() {
   const drawerRef = useRef(null);
 
   const busy =
-    tab?.messages.some(
-      (message) => message.status === "pending",
-    ) || false;
+    tab?.messages.some((message) => message.status === "pending") || false;
 
   const category = tab?.category || newCategory;
   const title = chat?.title;
@@ -74,9 +63,7 @@ export default function ChatPage() {
   }, [sidebarCollapsed]);
 
   useEffect(() => {
-    document.title = title
-      ? `${title} · NITO`
-      : "Chat with NITO";
+    document.title = title ? `${title} · NITO` : "Chat with NITO";
 
     return () => {
       document.title = "NITO";
@@ -86,18 +73,12 @@ export default function ChatPage() {
   useEffect(() => {
     if (!sidebarOpen) return;
 
-    const sidebar =
-      drawerRef.current.querySelector("aside");
+    const sidebar = drawerRef.current.querySelector("aside");
 
     const focusable = () =>
       [
-        ...sidebar.querySelectorAll(
-          "a[href], button:not(:disabled), input",
-        ),
-      ].filter(
-        (element) =>
-          element.getClientRects().length > 0,
-      );
+        ...sidebar.querySelectorAll("a[href], button:not(:disabled), input"),
+      ].filter((element) => element.getClientRects().length > 0);
 
     focusable()[0]?.focus();
 
@@ -107,26 +88,17 @@ export default function ChatPage() {
         menuRef.current?.focus();
       }
 
-      if (
-        event.key === "Tab" &&
-        window.innerWidth <= 800
-      ) {
+      if (event.key === "Tab" && window.innerWidth <= 800) {
         const elements = focusable();
         const first = elements[0];
         const last = elements.at(-1);
 
-        if (
-          event.shiftKey &&
-          document.activeElement === first
-        ) {
+        if (event.shiftKey && document.activeElement === first) {
           event.preventDefault();
           last?.focus();
         }
 
-        if (
-          !event.shiftKey &&
-          document.activeElement === last
-        ) {
+        if (!event.shiftKey && document.activeElement === last) {
           event.preventDefault();
           first?.focus();
         }
@@ -136,10 +108,7 @@ export default function ChatPage() {
     document.addEventListener("keydown", handleKey);
 
     return () => {
-      document.removeEventListener(
-        "keydown",
-        handleKey,
-      );
+      document.removeEventListener("keydown", handleKey);
     };
   }, [sidebarOpen]);
 
@@ -151,9 +120,7 @@ export default function ChatPage() {
   }
 
   function collapseSidebar() {
-    if (
-      window.matchMedia("(max-width: 800px)").matches
-    ) {
+    if (window.matchMedia("(max-width: 800px)").matches) {
       closeSidebar();
     } else {
       setSidebarOpen(false);
@@ -202,13 +169,19 @@ export default function ChatPage() {
   function sendMessage(text, attachments = []) {
     if (busy || (chatId && !chat)) return false;
 
-    const nextId = store.send({
-      chatId,
-      tabId: tab?.id,
-      text,
-      attachments,
-      category,
-    });
+    let nextId;
+    try {
+      nextId = store.send({
+        chatId,
+        tabId: tab?.id,
+        text,
+        attachments,
+        category,
+      });
+    } catch (error) {
+      notify(error.message);
+      return false;
+    }
 
     if (!nextId) return false;
 
@@ -230,9 +203,10 @@ export default function ChatPage() {
   }
 
   return (
-      <div
-        className={`
-          chat-shell
+    <div
+      {...appearance}
+      className={`
+          chat-shell nito-personalized
           min-[961px]:[zoom:0.8]!
           min-[961px]:w-full!
           min-[961px]:h-[125dvh]!
@@ -242,7 +216,7 @@ export default function ChatPage() {
               : "min-[961px]:grid-cols-[var(--chat-left)_minmax(0,1fr)_var(--chat-right)]!"
           }
         `}
-      >
+    >
       <a href="#chat-main" className="skip-link">
         Skip to conversation
       </a>
@@ -257,26 +231,20 @@ export default function ChatPage() {
         />
       )}
 
-      <div
-        ref={drawerRef}
-        className="chat-sidebar-slot"
-      >
+      <div ref={drawerRef} className="chat-sidebar-slot">
         <ChatSidebar
-          conversations={store.conversations}
+          conversations={store.conversations.filter((item) => !item.archived)}
           activeId={chatId}
           open={sidebarOpen}
           onClose={collapseSidebar}
           onNavigate={closeSidebar}
           onNew={newChat}
           onDelete={deleteChat}
+          onArchive={(id) => store.archive(id, true)}
         />
       </div>
 
-      <main
-        id="chat-main"
-        tabIndex={-1}
-        className="chat-main"
-      >
+      <main id="chat-main" tabIndex={-1} className="chat-main">
         <header className="chat-toolbar">
           <button
             ref={menuRef}
@@ -303,30 +271,21 @@ export default function ChatPage() {
 
                 requestAnimationFrame(() => {
                   drawerRef.current
-                    ?.querySelector(
-                      ".chat-close-sidebar",
-                    )
+                    ?.querySelector(".chat-close-sidebar")
                     ?.focus();
                 });
               }}
             >
-              <span
-                className="chat-chevron"
-                aria-hidden="true"
-              />
+              <span className="chat-chevron" aria-hidden="true" />
             </button>
           )}
 
           {chat && (
             <ChatTabs
               chat={chat}
-              onSelect={(tabId) =>
-                store.selectTab(chat.id, tabId)
-              }
+              onSelect={(tabId) => store.selectTab(chat.id, tabId)}
               onAdd={addTab}
-              onClose={(tabId) =>
-                store.removeTab(chat.id, tabId)
-              }
+              onClose={(tabId) => store.removeTab(chat.id, tabId)}
             />
           )}
         </header>
@@ -342,13 +301,10 @@ export default function ChatPage() {
 
         {chatId && !chat ? (
           <div className="chat-empty">
-            <h1 className="text-2xl">
-              Conversation not found
-            </h1>
+            <h1 className="text-2xl">Conversation not found</h1>
 
             <p className="mt-4 text-sm text-[#888]">
-              It may have been deleted or saved in
-              another browser.
+              It may have been deleted or saved in another browser.
             </p>
 
             <button
@@ -364,26 +320,18 @@ export default function ChatPage() {
             id="chat-tab-panel"
             className="chat-tab-panel"
             role={tab ? "tabpanel" : undefined}
-            aria-labelledby={
-              tab
-                ? `chat-tab-${tab.id}`
-                : undefined
-            }
+            aria-labelledby={tab ? `chat-tab-${tab.id}` : undefined}
           >
             {tab?.messages.length ? (
               <ChatMessages
                 chat={tab}
                 busy={busy}
-                onRetry={() =>
-                  store.retry(chat.id, tab.id)
-                }
+                onRetry={() => store.retry(chat.id, tab.id)}
               />
             ) : (
               <div className="chat-empty">
                 <h1 className="chat-greeting">
-                  {chat
-                    ? "Where to start today?"
-                    : "Evening!"}
+                  {chat ? "Where to start today?" : "Evening!"}
                 </h1>
 
                 <div
@@ -391,30 +339,32 @@ export default function ChatPage() {
                   role="group"
                   aria-label="Choose a chat category"
                 >
-                  {modes.map(([value, label, icon]) => (
-                    <button
-                      key={value}
-                      type="button"
-                      aria-pressed={category === value}
-                      onClick={() => {
-                        setCategory(value);
-                        inputRef.current?.focus();
-                      }}
-                      className={`chat-mode overflow-hidden rounded-[11px] border-0! bg-transparent! p-0! hover:bg-transparent! ${
-                        category === value
-                          ? "ring-1 ring-[#0066ff]"
-                          : "hover:ring-1 hover:ring-[#0066ff]"
-                      }`}
-                    >
-                      <img
-                        src={`/assets/icons/chat/modes/${icon}.svg`}
-                        alt=""
-                        draggable={false}
-                        className="block h-full w-full"
-                      />
-                      <span className="sr-only">{label}</span>
-                    </button>
-                  ))}
+                  {modes
+                    .filter(([value]) => settings.skills.includes(value))
+                    .map(([value, label, icon]) => (
+                      <button
+                        key={value}
+                        type="button"
+                        aria-pressed={category === value}
+                        onClick={() => {
+                          setCategory(value);
+                          inputRef.current?.focus();
+                        }}
+                        className={`chat-mode overflow-hidden rounded-[11px] border-0! bg-transparent! p-0! hover:bg-transparent! ${
+                          category === value
+                            ? "ring-1 ring-[#0066ff]"
+                            : "hover:ring-1 hover:ring-[#0066ff]"
+                        }`}
+                      >
+                        <img
+                          src={`/assets/icons/chat/modes/${icon}.svg`}
+                          alt=""
+                          draggable={false}
+                          className="block h-full w-full"
+                        />
+                        <span className="sr-only">{label}</span>
+                      </button>
+                    ))}
                 </div>
               </div>
             )}
@@ -425,9 +375,7 @@ export default function ChatPage() {
               onDraftChange={setDraft}
               onSend={sendMessage}
               busy={busy}
-              onStop={() =>
-                store.stop(chat.id, tab.id)
-              }
+              onStop={() => store.stop(chat.id, tab.id)}
               inputRef={inputRef}
             />
           </section>

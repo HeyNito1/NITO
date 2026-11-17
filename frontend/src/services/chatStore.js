@@ -1,3 +1,4 @@
+import { settingsStore } from "./settingsStore";
 import { replyToChat } from "./chatService";
 
 const STORAGE_KEY = "nito.chats.v2";
@@ -26,9 +27,7 @@ function attachment(value) {
 
 function cleanAttachments(files) {
   return Array.isArray(files)
-    ? files
-        .filter((file) => typeof file?.name === "string")
-        .map(attachment)
+    ? files.filter((file) => typeof file?.name === "string").map(attachment)
     : [];
 }
 
@@ -45,8 +44,7 @@ function readSaved() {
     return saved
       .filter(
         (chat) =>
-          typeof chat?.id === "string" &&
-          typeof chat.title === "string",
+          typeof chat?.id === "string" && typeof chat.title === "string",
       )
       .map((chat) => {
         const source =
@@ -63,21 +61,13 @@ function readSaved() {
 
         const tabs = source.map((tab) => ({
           id: typeof tab.id === "string" ? tab.id : id(),
-          title:
-            typeof tab.title === "string"
-              ? tab.title
-              : "New tab",
+          title: typeof tab.title === "string" ? tab.title : "New tab",
           category: tab.category || "general",
           draft: {
-            text:
-              typeof tab.draft?.text === "string"
-                ? tab.draft.text
-                : "",
+            text: typeof tab.draft?.text === "string" ? tab.draft.text : "",
             attachments: cleanAttachments(tab.draft?.attachments),
           },
-          messages: (
-            Array.isArray(tab.messages) ? tab.messages : []
-          )
+          messages: (Array.isArray(tab.messages) ? tab.messages : [])
             .filter(
               (message) =>
                 typeof message?.id === "string" &&
@@ -100,10 +90,9 @@ function readSaved() {
           id: chat.id,
           title: chat.title,
           createdAt: chat.createdAt || Date.now(),
+          archived: Boolean(chat.archived),
           tabs,
-          activeTabId: tabs.some(
-            (tab) => tab.id === chat.activeTabId,
-          )
+          activeTabId: tabs.some((tab) => tab.id === chat.activeTabId)
             ? chat.activeTabId
             : tabs[0].id,
         };
@@ -138,17 +127,13 @@ function publish(conversations) {
 }
 
 function findChat(chatId) {
-  return snapshot.conversations.find(
-    (chat) => chat.id === chatId,
-  );
+  return snapshot.conversations.find((chat) => chat.id === chatId);
 }
 
 function findTab(chatId, tabId) {
   const chat = findChat(chatId);
 
-  return chat?.tabs.find(
-    (tab) => tab.id === (tabId || chat.activeTabId),
-  );
+  return chat?.tabs.find((tab) => tab.id === (tabId || chat.activeTabId));
 }
 
 function updateChat(chatId, change) {
@@ -164,9 +149,7 @@ function updateChat(chatId, change) {
 function updateTab(chatId, tabId, change) {
   updateChat(chatId, (chat) => ({
     ...chat,
-    tabs: chat.tabs.map((tab) =>
-      tab.id === tabId ? change(tab) : tab,
-    ),
+    tabs: chat.tabs.map((tab) => (tab.id === tabId ? change(tab) : tab)),
   }));
 }
 
@@ -181,9 +164,7 @@ async function respond(chatId, tabId, responseId) {
     updateTab(chatId, tabId, (item) => ({
       ...item,
       messages: item.messages.map((message) =>
-        message.id === responseId
-          ? { ...message, status, text }
-          : message,
+        message.id === responseId ? { ...message, status, text } : message,
       ),
     }));
   }
@@ -194,9 +175,7 @@ async function respond(chatId, tabId, responseId) {
         category: tab.category,
         messages: tab.messages.filter(
           (message) =>
-            !["pending", "error", "stopped"].includes(
-              message.status,
-            ),
+            !["pending", "error", "stopped"].includes(message.status),
         ),
       },
       { signal: controller.signal },
@@ -204,6 +183,21 @@ async function respond(chatId, tabId, responseId) {
 
     if (!controller.signal.aborted) {
       finish("complete", text);
+      const prefs = settingsStore.getSnapshot().data.notifications;
+      if (
+        prefs.finished &&
+        document.hidden &&
+        "Notification" in window &&
+        Notification.permission === "granted"
+      ) {
+        try {
+          new Notification("NITO response ready", {
+            body: "Your response is ready in NITO.",
+          });
+        } catch {
+          /* Browser may not support desktop notifications. */
+        }
+      }
     }
   } catch (error) {
     if (!controller.signal.aborted) {
@@ -263,24 +257,16 @@ export const chatStore = {
   removeTab(chatId, tabId) {
     const chat = findChat(chatId);
 
-    if (
-      !chat ||
-      chat.tabs.length < 2 ||
-      !findTab(chatId, tabId)
-    ) {
+    if (!chat || chat.tabs.length < 2 || !findTab(chatId, tabId)) {
       return;
     }
 
     requests.get(tabId)?.controller.abort();
     requests.delete(tabId);
 
-    const index = chat.tabs.findIndex(
-      (tab) => tab.id === tabId,
-    );
+    const index = chat.tabs.findIndex((tab) => tab.id === tabId);
 
-    const tabs = chat.tabs.filter(
-      (tab) => tab.id !== tabId,
-    );
+    const tabs = chat.tabs.filter((tab) => tab.id !== tabId);
 
     updateChat(chatId, (item) => ({
       ...item,
@@ -300,9 +286,7 @@ export const chatStore = {
         ...patch,
         ...(patch.attachments
           ? {
-              attachments: cleanAttachments(
-                patch.attachments,
-              ),
+              attachments: cleanAttachments(patch.attachments),
             }
           : {}),
       },
@@ -316,13 +300,7 @@ export const chatStore = {
     }));
   },
 
-  send({
-    chatId,
-    tabId,
-    text,
-    category,
-    attachments = [],
-  }) {
+  send({ chatId, tabId, text, category, attachments = [] }) {
     text = text.trim();
 
     if (!text || text.length > 4000) return null;
@@ -343,19 +321,46 @@ export const chatStore = {
     }
 
     const tab = chat.tabs.find(
-      (item) =>
-        item.id === (tabId || chat.activeTabId),
+      (item) => item.id === (tabId || chat.activeTabId),
     );
 
     if (!tab || requests.has(tab.id)) return null;
+
+    const settings = settingsStore.getSnapshot().data;
+    const member = settings.family.find(
+      (item) => item.id === settings.activeFamilyId,
+    );
+    if (member) {
+      const selectedCategory = category || tab.category;
+      if (member.blocked.includes(selectedCategory))
+        throw new Error(
+          `${selectedCategory} is disabled in the active family profile.`,
+        );
+      const today = new Date().toLocaleDateString("en-CA", {
+        timeZone: "Asia/Kolkata",
+      });
+      const count = snapshot.conversations
+        .flatMap((item) => item.tabs.flatMap((thread) => thread.messages))
+        .filter(
+          (m) =>
+            m.role === "user" &&
+            m.familyId === member.id &&
+            new Date(m.createdAt || 0).toLocaleDateString("en-CA", {
+              timeZone: "Asia/Kolkata",
+            }) === today,
+        ).length;
+      if (count >= member.dailyLimit)
+        throw new Error(
+          "Daily message limit reached for the active family profile.",
+        );
+    }
+    const familyId = member?.id;
 
     const responseId = id();
 
     const nextTab = {
       ...tab,
-      title: tab.messages.length
-        ? tab.title
-        : text.slice(0, 55),
+      title: tab.messages.length ? tab.title : text.slice(0, 55),
       category: category || tab.category,
       draft: emptyDraft(),
       messages: [
@@ -363,12 +368,15 @@ export const chatStore = {
         {
           id: id(),
           role: "user",
+          createdAt: Date.now(),
+          familyId,
           text,
           attachments: cleanAttachments(attachments),
         },
         {
           id: responseId,
           role: "assistant",
+          createdAt: Date.now(),
           text: "",
           status: "pending",
           attachments: [],
@@ -377,28 +385,19 @@ export const chatStore = {
     };
 
     const isFirstMessage = chat.tabs.every(
-      (item) =>
-        !item.messages.some(
-          (message) => message.role === "user",
-        ),
+      (item) => !item.messages.some((message) => message.role === "user"),
     );
 
     const nextChat = {
       ...chat,
-      title: isFirstMessage
-        ? text.slice(0, 55)
-        : chat.title,
-      tabs: chat.tabs.map((item) =>
-        item.id === tab.id ? nextTab : item,
-      ),
+      title: isFirstMessage ? text.slice(0, 55) : chat.title,
+      tabs: chat.tabs.map((item) => (item.id === tab.id ? nextTab : item)),
       activeTabId: tab.id,
     };
 
     publish([
       nextChat,
-      ...snapshot.conversations.filter(
-        (item) => item.id !== chat.id,
-      ),
+      ...snapshot.conversations.filter((item) => item.id !== chat.id),
     ]);
 
     void respond(chat.id, tab.id, responseId);
@@ -450,6 +449,25 @@ export const chatStore = {
     }));
   },
 
+  archive(chatId, archived = true) {
+    updateChat(chatId, (chat) => ({ ...chat, archived }));
+  },
+
+  archiveAll(archived = true) {
+    publish(snapshot.conversations.map((chat) => ({ ...chat, archived })));
+  },
+
+  clear() {
+    for (const request of requests.values()) request.controller.abort();
+    requests.clear();
+    try {
+      localStorage.removeItem("nito.chats.v1");
+    } catch {
+      /* publish reports storage failures. */
+    }
+    publish([]);
+  },
+
   remove(chatId) {
     for (const [tabId, request] of requests) {
       if (request.chatId === chatId) {
@@ -458,10 +476,6 @@ export const chatStore = {
       }
     }
 
-    publish(
-      snapshot.conversations.filter(
-        (chat) => chat.id !== chatId,
-      ),
-    );
+    publish(snapshot.conversations.filter((chat) => chat.id !== chatId));
   },
 };

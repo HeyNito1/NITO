@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router";
 import { useNotice } from "@/context/NoticeContext";
 
 const items = [
@@ -16,6 +17,7 @@ export default function ProfileMenu({ children }) {
   const innerRef = useRef(null);
   const buttonRef = useRef(null);
   const { notify } = useNotice();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (innerRef.current) {
@@ -51,14 +53,19 @@ export default function ProfileMenu({ children }) {
 
   function choose(label) {
     setOpen(false);
-    notify(`${label} is coming soon.`);
+    if (label === "Your Profile") navigate("/profile");
+    else if (label === "Settings") navigate("/settings/account");
+    else if (label === "Upgrade Plan") navigate("/settings/billing");
+    else
+      notify(
+        label === "Logout"
+          ? "You are using the local demo. There is no signed-in account to log out of."
+          : `${label} is coming soon.`,
+      );
   }
 
   return (
-    <div
-      ref={rootRef}
-      className="chat-sidebar-profile relative"
-    >
+    <div ref={rootRef} className="chat-sidebar-profile relative">
       {/* Grows upward from the top edge of the profile row */}
       <div
         id="chat-profile-menu"
@@ -113,7 +120,26 @@ export default function ProfileMenu({ children }) {
         {children}
 
         <span className="chat-settings-button">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m9.5 3-.6 2.3-1.7 1-2.3-.6-2 3.5 1.7 1.7v2.2l-1.7 1.7 2 3.5 2.3-.6 1.7 1 .6 2.3h4.1l.6-2.3 1.7-1 2.3.6 2-3.5-1.7-1.7v-2.2l1.7-1.7-2-3.5-2.3.6-1.7-1-.6-2.3z" stroke="currentColor" strokeWidth="1.5" /><circle cx="11.55" cy="12" r="3.1" stroke="currentColor" strokeWidth="1.5" /></svg>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="m9.5 3-.6 2.3-1.7 1-2.3-.6-2 3.5 1.7 1.7v2.2l-1.7 1.7 2 3.5 2.3-.6 1.7 1 .6 2.3h4.1l.6-2.3 1.7-1 2.3.6 2-3.5-1.7-1.7v-2.2l1.7-1.7-2-3.5-2.3.6-1.7-1-.6-2.3z"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
+            <circle
+              cx="11.55"
+              cy="12"
+              r="3.1"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
+          </svg>
         </span>
       </div>
     </div>
