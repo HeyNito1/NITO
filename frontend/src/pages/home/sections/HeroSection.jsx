@@ -46,7 +46,15 @@ export default function HeroSection({ categories, composer }) {
             onChange={(event) => setPrompt(event.target.value)}
             categories={categories}
             selectedCategory={category}
-            onCategoryChange={setCategory}
+            onCategoryChange={(selectedCategory) => {
+              setCategory(selectedCategory);
+
+              try {
+                enterChat();
+              } catch (error) {
+                notify(error.message);
+              }
+            }}
             onSubmit={submit}
             onAttach={() => fileRef.current?.click()}
             inputRef={inputRef}

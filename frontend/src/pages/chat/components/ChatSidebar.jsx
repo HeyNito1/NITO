@@ -180,11 +180,17 @@ export default function ChatSidebar({
               <button
                 type="button"
                 onClick={() => onArchive(chat.id)}
-                className="chat-delete-button"
+                className="chat-delete-button inline-flex items-center justify-center"
                 aria-label={`Archive chat: ${chat.title}`}
                 title="Archive chat"
               >
-                ⌑
+                <img
+                  src="/assets/icons/chat/archive.svg"
+                  alt=""
+                  width="24"
+                  height="24"
+                  className="block max-w-none"
+                />
               </button>
             )}
             <button

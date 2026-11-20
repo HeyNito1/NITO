@@ -133,7 +133,7 @@ export default function ChatComposer({
           </ul>
         )}
 
-        <div className="flex items-end gap-2">
+        <div className="flex min-h-[40px] items-center gap-[12px]">
           <input
             ref={fileRef}
             type="file"
@@ -146,7 +146,7 @@ export default function ChatComposer({
           />
 
           <IconButton
-            className="chat-icon-button"
+            className="chat-icon-button self-center! leading-none!"
             label="Add attachment"
             disabled={busy}
             onClick={() =>
@@ -194,7 +194,7 @@ export default function ChatComposer({
               resize-none
               border-0
               bg-transparent
-              py-1
+              py-[6px]!
               text-[22.222px]!
               leading-[28px]!
               text-white
@@ -206,7 +206,7 @@ export default function ChatComposer({
 
           {busy ? (
             <IconButton
-              className="chat-send-button"
+              className="chat-send-button self-center! leading-none!"
               label="Stop response"
               variant="blue"
               onClick={onStop}

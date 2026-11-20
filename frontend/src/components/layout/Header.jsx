@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import Container from "@/components/ui/Container";
 import Button from "@/components/ui/Button";
 import IconButton from "@/components/ui/IconButton";
@@ -8,6 +8,7 @@ import { navigation } from "@/data/navigation";
 import { useNavigation } from "./useNavigation";
 import { useChatEntry } from "@/hooks/useChatEntry";
 export default function Header() {
+  const navigate = useNavigate();
   const enterChat = useChatEntry();
   const { active, mobileOpen, rootRef, openMenu, toggleMenu, toggleMobile, close } =
     useNavigation();
@@ -43,9 +44,10 @@ export default function Header() {
   const actions = (
     <>
       <Button
-        onClick={() =>
-          notify("Sign up will be available when account services launch.")
-        }
+        onClick={() => {
+          close();
+          navigate("/signup");
+        }}
       >
         Sign Up
       </Button>
@@ -92,13 +94,35 @@ export default function Header() {
         </nav>
         <div className="header-actions">{actions}</div>
         <IconButton
-          className="mobile-toggle"
+          className="mobile-toggle" 
+          style={{
+            padding: 0,
+            alignItems: "center",
+            justifyContent: "center",
+            lineHeight: 1,
+          }}
           label={mobileOpen ? "Close navigation" : "Open navigation"}
           aria-expanded={mobileOpen}
           aria-controls="navigation-panel"
           onClick={(event) => toggleMobile(event.currentTarget)}
         >
-          {mobileOpen ? "×" : "☰"}
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="butt"
+            aria-hidden="true"
+            style={{ display: "block", flexShrink: 0 }}
+          >
+            {mobileOpen ? (
+              <path d="M6 6L18 18M18 6L6 18" />
+            ) : (
+              <path d="M4 6H20M4 12H20M4 18H20" />
+            )}
+          </svg>
         </IconButton>
       </Container>
       <div
