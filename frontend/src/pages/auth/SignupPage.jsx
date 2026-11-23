@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { apiRequest } from "@/services/apiClient";
 import { useNotice } from "@/context/NoticeContext";
 import AuthLayout from "./AuthLayout";
+import { chatPath } from "@/services/chatDestination";
+import { useNavigate } from "react-router";
 
 function GoogleIcon() {
   return (
@@ -42,7 +44,7 @@ function AppleIcon() {
       aria-hidden="true"
       style={{ flexShrink: 0 }}
     >
-      <path d="M17.05 12.54c.03 3.25 2.85 4.33 2.88 4.35-.02.08-.45 1.54-1.49 3.05-.9 1.3-1.84 2.6-3.31 2.63-1.45.03-1.92-.85-3.58-.85-1.65 0-2.17.82-3.55.88-1.42.05-2.51-1.42-3.42-2.71C2.72 17.25 1.3 12.4 3.21 9.13a5.3 5.3 0 0 1 4.5-2.72c1.41-.03 2.74.94 3.59.94.85 0 2.44-1.16 4.12-.99.7.03 2.68.28 3.95 2.12-.1.06-2.35 1.37-2.32 4.06ZM14.33 4.6c.75-.91 1.26-2.17 1.12-3.43-1.08.04-2.4.72-3.18 1.63-.7.79-1.31 2.06-1.15 3.28 1.2.09 2.43-.62 3.21-1.48Z" />
+      <path d="M17.05 12.54c.03 3.25 2.85 4.33 2.88 4.35-.02.08-.45 1.54-1.49 3.05-.9 1.3-1.84 2.6-3.31 2.63-1.45.03-1.92-.85-3.58-.85-1.65 0-2.17.82-3.55.88-1.42.05-2.51-1.42-3.42-2.71C2.72 17.25 1.3 12.4 3.21 9.13a5.3 5.3 0 0 1 4.5-2.72c1.41-.03 2.74.94 3.59.94.85 0 2.44-1.16 4.12-.99.7.03 2.68.28 3.95 2.12-.1.06-2.35 1.37-2.32 4.06ZM14.33 4.6c.75-.91 1.26-2.17 1.12-3.43-1.08.04-2.4.72-3.18 1.63-.7.83-1.31 2.17-1.15 3.28 1.2.09 2.43-.62 3.21-1.48Z" />
     </svg>
   );
 }
@@ -62,37 +64,88 @@ function PhoneIcon() {
   );
 }
 
+const inputStyle = {
+  boxSizing: "border-box",
+  display: "block",
+  width: "100%",
+  height: 50,
+  padding: "0 24px",
+  border: "1px solid #808080",
+  borderRadius: 999,
+  background: "#000",
+  color: "#fff",
+  fontFamily: "inherit",
+  fontSize: 18,
+};
+
+const secondaryButtonStyle = {
+  boxSizing: "border-box",
+  width: "100%",
+  height: 50,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 10,
+  padding: "0 14px",
+  border: "1px solid #808080",
+  borderRadius: 999,
+  background: "#000",
+  color: "#fff",
+  fontFamily: "inherit",
+  fontSize: "clamp(13px, 1.1vw, 16px)",
+  fontWeight: 400,
+  cursor: "pointer",
+};
+
 export default function SignupPage() {
-  const navigate = useNavigate();
   const { notify } = useNotice();
+  const [isLogin, setIsLogin] = useState(false);
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
-  function handleSubmit(event) {
+  const submitLabel = isLogin ? "Log in" : "Create account";
+  const pendingLabel = isLogin ? "Logging in…" : "Creating account…";
+
+  async function handleSubmit(event) {
     event.preventDefault();
+    if (isSubmitting) return;
 
-    navigate("/signup/verify", {
-      state: { email: email.trim() },
-    });
+    setIsSubmitting(true);
+
+    try {
+      const credentials = { email: email.trim(), password };
+
+      if (isLogin) {
+        const result = await apiRequest("auth/login", {
+          method: "POST",
+          body: credentials,
+        });
+
+        if (typeof result?.access_token !== "string" || !result.access_token) {
+          throw new Error("The server did not return a login token.");
+        }
+
+        sessionStorage.setItem("nito.accessToken", result.access_token);
+        notify("Logged in successfully.");
+        navigate(chatPath(), { replace: true });
+      } else {
+        await apiRequest("auth/signup", {
+          method: "POST",
+          body: credentials,
+        });
+
+        notify("Account created successfully.");
+      }
+
+      setPassword("");
+    } catch (error) {
+      notify(error.message || "Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
-
-  const socialButton = {
-    boxSizing: "border-box",
-    width: "100%",
-    height: 50,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    padding: "0 14px",
-    border: "1px solid #808080",
-    borderRadius: 999,
-    background: "#000",
-    color: "#fff",
-    fontFamily: "inherit",
-    fontSize: "clamp(13px, 1.1vw, 16px)",
-    fontWeight: 400,
-    cursor: "pointer",
-  };
 
   return (
     <AuthLayout>
@@ -107,12 +160,10 @@ export default function SignupPage() {
           letterSpacing: "-1px",
         }}
       >
-        LOGIN
-        <br />
-        OR SIGN UP
+        {isLogin ? "LOG IN" : "SIGN UP"}
       </h1>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} aria-busy={isSubmitting}>
         <input
           type="email"
           name="email"
@@ -120,25 +171,30 @@ export default function SignupPage() {
           placeholder="Enter Your Email"
           autoComplete="email"
           required
+          disabled={isSubmitting}
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          style={{
-            boxSizing: "border-box",
-            display: "block",
-            width: "100%",
-            height: 50,
-            padding: "0 24px",
-            border: "1px solid #808080",
-            borderRadius: 999,
-            background: "#000",
-            color: "#fff",
-            fontFamily: "inherit",
-            fontSize: 18,
-          }}
+          style={inputStyle}
+        />
+
+        <input
+          type="password"
+          name="password"
+          aria-label="Password"
+          placeholder={isLogin ? "Enter Your Password" : "Create a Password"}
+          autoComplete={isLogin ? "current-password" : "new-password"}
+          minLength={isLogin ? undefined : 8}
+          maxLength={128}
+          required
+          disabled={isSubmitting}
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          style={{ ...inputStyle, marginTop: 12 }}
         />
 
         <button
           type="submit"
+          disabled={isSubmitting}
           style={{
             boxSizing: "border-box",
             display: "block",
@@ -152,12 +208,24 @@ export default function SignupPage() {
             fontFamily: "inherit",
             fontSize: 16,
             fontWeight: 500,
-            cursor: "pointer",
+            cursor: isSubmitting ? "wait" : "pointer",
           }}
         >
-          Proceed
+          {isSubmitting ? pendingLabel : submitLabel}
         </button>
       </form>
+
+      <button
+        type="button"
+        disabled={isSubmitting}
+        onClick={() => {
+          setIsLogin((current) => !current);
+          setPassword("");
+        }}
+        style={{ ...secondaryButtonStyle, marginTop: 12 }}
+      >
+        {isLogin ? "Need an account? Sign up" : "Already have an account? Log in"}
+      </button>
 
       <div
         style={{
@@ -173,19 +241,15 @@ export default function SignupPage() {
           style={{
             flex: 1,
             height: 1,
-            background:
-              "linear-gradient(to right, transparent, #b0b0b0)",
+            background: "linear-gradient(to right, transparent, #b0b0b0)",
           }}
         />
-
         <span>OR</span>
-
         <span
           style={{
             flex: 1,
             height: 1,
-            background:
-              "linear-gradient(to left, transparent, #b0b0b0)",
+            background: "linear-gradient(to left, transparent, #b0b0b0)",
           }}
         />
       </div>
@@ -193,7 +257,7 @@ export default function SignupPage() {
       <div style={{ display: "grid", gap: 17 }}>
         <button
           type="button"
-          style={socialButton}
+          style={secondaryButtonStyle}
           onClick={() =>
             notify("Google sign-in is not connected in this frontend preview.")
           }
@@ -204,7 +268,7 @@ export default function SignupPage() {
 
         <button
           type="button"
-          style={socialButton}
+          style={secondaryButtonStyle}
           onClick={() =>
             notify("Apple sign-in is not connected in this frontend preview.")
           }
@@ -215,7 +279,7 @@ export default function SignupPage() {
 
         <button
           type="button"
-          style={socialButton}
+          style={secondaryButtonStyle}
           onClick={() =>
             notify("Phone sign-in is not connected in this frontend preview.")
           }

@@ -55,7 +55,8 @@ export default function Header() {
         arrow
         onClick={() => {
           close();
-          try { enterChat(); } catch (error) { notify(error.message); }
+          // try { enterChat(); } catch (error) { notify(error.message); }
+          navigate("/signup");
         }}
       >
         Try NITO

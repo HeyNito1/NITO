@@ -11,7 +11,7 @@ export class ApiError extends Error {
 export async function apiRequest(path, { body, headers, ...options } = {}) {
   let response;
   try {
-    response = await fetch(`${env.apiBaseUrl}/${path.replace(/^\//, "")}`, {
+    response = await fetch(`${env.apiBaseUrl}/${path.replace(/^\/+/, "")}`, {
       ...options,
       headers: {
         Accept: "application/json",
@@ -36,11 +36,22 @@ export async function apiRequest(path, { body, headers, ...options } = {}) {
       code: "INVALID_RESPONSE",
     });
   }
-  if (!response.ok)
-    throw new ApiError(payload.error?.message || "Request failed.", {
-      status: response.status,
-      code: payload.error?.code,
-      details: payload.error?.details,
-    });
-  return payload.data;
+    if (!response.ok) {
+      const detail = payload?.detail;
+      const fastApiMessage = Array.isArray(detail) ? detail[0]?.msg : detail;
+
+      throw new ApiError(
+        payload?.error?.message ||
+          (typeof fastApiMessage === "string" ? fastApiMessage : "Request failed."),
+        {
+          status: response.status,
+          code: payload?.error?.code,
+          details: payload?.error?.details ?? detail,
+        }
+      );
+    }
+
+    return payload && Object.prototype.hasOwnProperty.call(payload, "data")
+      ? payload.data
+      : payload;
 }
