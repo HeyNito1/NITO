@@ -1,5 +1,12 @@
 import { settingsStore } from "./settingsStore";
 import { replyToChat } from "./chatService";
+import {
+  chatSession,
+  fetchConversations,
+  fetchMessages,
+  liveChat,
+  sendLiveMessage,
+} from "./chatBackend";
 
 const STORAGE_KEY = "nito.chats.v2";
 const listeners = new Set();
@@ -31,11 +38,12 @@ function cleanAttachments(files) {
     : [];
 }
 
-function readSaved() {
+function readSaved(key) {
+  if (!key) return [];
   try {
-    const raw =
-      localStorage.getItem(STORAGE_KEY) ??
-      localStorage.getItem("nito.chats.v1");
+    const raw = liveChat
+      ? sessionStorage.getItem(key)
+      : localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem("nito.chats.v1");
 
     const saved = JSON.parse(raw || "[]");
 
@@ -63,6 +71,7 @@ function readSaved() {
           id: typeof tab.id === "string" ? tab.id : id(),
           title: typeof tab.title === "string" ? tab.title : "New tab",
           category: tab.category || "general",
+          conversationId: liveChat ? tab.conversationId : undefined,
           draft: {
             text: typeof tab.draft?.text === "string" ? tab.draft.text : "",
             attachments: cleanAttachments(tab.draft?.attachments),
@@ -102,17 +111,29 @@ function readSaved() {
   }
 }
 
-let snapshot = {
-  conversations: readSaved(),
-  storageError: "",
-};
+const emptySnapshot = { conversations: [], storageError: "" };
+let cacheKey = liveChat ? chatSession()?.key ?? null : STORAGE_KEY;
+let snapshot = { ...emptySnapshot, conversations: readSaved(cacheKey) };
+
+function syncSession() {
+  if (!liveChat) return;
+  const nextKey = chatSession()?.key ?? null;
+  if (nextKey === cacheKey) return;
+
+  for (const request of requests.values()) request.controller.abort();
+  requests.clear();
+  cacheKey = nextKey;
+  snapshot = { ...emptySnapshot, conversations: readSaved(cacheKey) };
+  listeners.forEach((listener) => listener());
+}
 
 function publish(conversations) {
   let storageError = "";
 
   try {
-    localStorage.setItem(
-      STORAGE_KEY,
+    const storage = liveChat ? sessionStorage : localStorage;
+    if (cacheKey) storage.setItem(
+      cacheKey,
       JSON.stringify(conversations, (key, value) =>
         key === "file" ? undefined : value,
       ),
@@ -160,9 +181,10 @@ async function respond(chatId, tabId, responseId) {
   const controller = new AbortController();
   requests.set(tabId, { chatId, controller });
 
-  function finish(status, text) {
+  function finish(status, text, conversationId) {
     updateTab(chatId, tabId, (item) => ({
       ...item,
+      ...(conversationId ? { conversationId } : {}),
       messages: item.messages.map((message) =>
         message.id === responseId ? { ...message, status, text } : message,
       ),
@@ -170,19 +192,18 @@ async function respond(chatId, tabId, responseId) {
   }
 
   try {
-    const text = await replyToChat(
-      {
-        category: tab.category,
-        messages: tab.messages.filter(
-          (message) =>
-            !["pending", "error", "stopped"].includes(message.status),
-        ),
-      },
-      { signal: controller.signal },
+    const messages = tab.messages.filter(
+      (message) => !["pending", "error", "stopped"].includes(message.status),
     );
+    const latest = messages.findLast((message) => message.role === "user");
+    const result = liveChat
+      ? await sendLiveMessage(latest.text, tab.conversationId, controller.signal)
+      : { text: await replyToChat({ category: tab.category, messages }, {
+          signal: controller.signal,
+        }) };
 
-    if (!controller.signal.aborted) {
-      finish("complete", text);
+    if (!controller.signal.aborted && (!liveChat || chatSession()?.key === cacheKey)) {
+      finish("complete", result.text, result.conversationId);
       const prefs = settingsStore.getSnapshot().data.notifications;
       if (
         prefs.finished &&
@@ -217,7 +238,74 @@ export const chatStore = {
   },
 
   getSnapshot() {
+    if (liveChat && (chatSession()?.key ?? null) !== cacheKey) return emptySnapshot;
     return snapshot;
+  },
+
+  async loadHistory(signal) {
+    syncSession();
+    if (!liveChat || !cacheKey) return;
+
+    const token = chatSession()?.token;
+    const rows = await fetchConversations(signal);
+    if (signal.aborted || chatSession()?.token !== token) return;
+
+    const known = new Set(snapshot.conversations.flatMap((chat) =>
+      chat.tabs.map((tab) => tab.conversationId),
+    ));
+
+    const imported = rows
+      .filter((row) => !known.has(row.conversation_id))
+      .map((row) => {
+        const tab = { ...newTab(), conversationId: row.conversation_id };
+
+        return {
+          id: row.conversation_id,
+          title: "Saved conversation",
+          createdAt: Date.parse(row.created_at) || Date.now(),
+          tabs: [tab],
+          activeTabId: tab.id,
+        };
+      });
+
+    if (imported.length) {
+      publish([...snapshot.conversations, ...imported]
+        .sort((a, b) => b.createdAt - a.createdAt));
+    }
+  },
+
+  async loadMessages(chatId, tabId, signal) {
+    const tab = findTab(chatId, tabId);
+    if (!liveChat || !tab?.conversationId || tab.messages.length) return;
+
+    const token = chatSession()?.token;
+    const rows = await fetchMessages(tab.conversationId, signal);
+    if (signal.aborted || chatSession()?.token !== token) return;
+
+    const messages = rows
+      .filter((row) => ["user", "assistant"].includes(row.role))
+      .map((row) => ({
+        id: id(),
+        role: row.role,
+        text: row.content,
+        createdAt: Date.parse(row.created_at) || Date.now(),
+        status: "complete",
+        attachments: [],
+      }));
+    const title = messages.find((message) => message.role === "user")?.text.slice(0, 55);
+
+    updateChat(chatId, (chat) => {
+      const target = chat.tabs.find((item) => item.id === tabId);
+      if (!target || target.messages.length) return chat;
+
+      return {
+        ...chat,
+        title: chat.title === "Saved conversation" && title ? title : chat.title,
+        tabs: chat.tabs.map((item) =>
+          item.id === tabId ? { ...item, title: title || item.title, messages } : item,
+        ),
+      };
+    });
   },
 
   create() {
@@ -301,7 +389,13 @@ export const chatStore = {
   },
 
   send({ chatId, tabId, text, category, attachments = [] }) {
+    syncSession();
     text = text.trim();
+
+    if (liveChat && !cacheKey) throw new Error("Please log in to use chat.");
+    if (liveChat && attachments.length) {
+      throw new Error("Remove the attachments to send a text message.");
+    }
 
     if (!text || text.length > 4000) return null;
 
@@ -405,6 +499,7 @@ export const chatStore = {
   },
 
   retry(chatId, tabId) {
+    if (liveChat) return;
     const tab = findTab(chatId, tabId);
     const last = tab?.messages.at(-1);
 
@@ -429,6 +524,7 @@ export const chatStore = {
   },
 
   stop(chatId, tabId) {
+    if (liveChat) return;
     const tab = findTab(chatId, tabId);
     if (!tab) return;
 

@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { Navigate, useNavigate, useParams } from "react-router";
 
 import { useSettings, useAppearance } from "@/services/settingsStore";
 import { useNotice } from "@/context/NoticeContext";
 import "@/pages/settings/settings.css";
 import { useChat } from "@/hooks/useChat";
+import { chatSession, liveChat } from "@/services/chatBackend";
 import { chatPath } from "@/services/chatDestination";
 
 import ChatSidebar from "./components/ChatSidebar";
@@ -35,6 +36,11 @@ export default function ChatPage() {
   const { notify } = useNotice();
   const store = useChat();
   const navigate = useNavigate();
+  const sessionToken = liveChat ? chatSession()?.token : null;
+  const { loadHistory, loadMessages } = store;
+  const [historyLoading, setHistoryLoading] = useState(liveChat);
+  const [loadedTabId, setLoadedTabId] = useState(null);
+  const [messageLoadError, setMessageLoadError] = useState(null);
 
   const chat = store.conversations.find((item) => item.id === chatId);
 
@@ -52,6 +58,43 @@ export default function ChatPage() {
 
   const busy =
     tab?.messages.some((message) => message.status === "pending") || false;
+
+  const selectedTabId = tab?.id;
+  const needsMessages = Boolean(
+    liveChat && tab?.conversationId && !tab.messages.length && loadedTabId !== tab.id,
+  );
+
+  useEffect(() => {
+    if (!sessionToken) return;
+    const controller = new AbortController();
+
+    loadHistory(controller.signal)
+      .catch((error) => {
+        if (!controller.signal.aborted) notify(error.message);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setHistoryLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [loadHistory, notify, sessionToken]);
+
+  useEffect(() => {
+    if (!needsMessages || !sessionToken) return;
+    const controller = new AbortController();
+
+    loadMessages(chatId, selectedTabId, controller.signal)
+      .then(() => {
+        if (!controller.signal.aborted) setLoadedTabId(selectedTabId);
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted) {
+          setMessageLoadError({ tabId: selectedTabId, text: error.message });
+        }
+      });
+
+    return () => controller.abort();
+  }, [chatId, loadMessages, needsMessages, selectedTabId, sessionToken]);
 
   const category = tab?.category || newCategory;
   const title = chat?.title;
@@ -167,7 +210,7 @@ export default function ChatPage() {
   }
 
   function sendMessage(text, attachments = []) {
-    if (busy || (chatId && !chat)) return false;
+    if (busy || needsMessages || (chatId && !chat)) return false;
 
     let nextId;
     try {
@@ -195,12 +238,18 @@ export default function ChatPage() {
   }
 
   function deleteChat(targetId) {
+    if (liveChat) {
+      notify("Deleting saved conversations requires a backend API.");
+      return;
+    }
     store.remove(targetId);
 
     if (targetId === chatId) {
       newChat();
     }
   }
+
+  if (liveChat && !sessionToken) return <Navigate to="/signup" replace />;
 
   return (
     <div
@@ -299,7 +348,16 @@ export default function ChatPage() {
           </p>
         )}
 
-        {chatId && !chat ? (
+        {needsMessages && messageLoadError?.tabId === selectedTabId ? (
+          <div className="chat-empty" role="alert">
+            <p>{messageLoadError.text}</p>
+            <button type="button" onClick={() => window.location.reload()}>
+              Reload chat
+            </button>
+          </div>
+        ) : needsMessages || (historyLoading && chatId && !chat) ? (
+          <div className="chat-empty" role="status">Loading conversation…</div>
+        ) : chatId && !chat ? (
           <div className="chat-empty">
             <h1 className="text-2xl">Conversation not found</h1>
 
@@ -326,7 +384,7 @@ export default function ChatPage() {
               <ChatMessages
                 chat={tab}
                 busy={busy}
-                onRetry={() => store.retry(chat.id, tab.id)}
+                onRetry={liveChat ? undefined : () => store.retry(chat.id, tab.id)}
               />
             ) : (
               <div className="chat-empty">
@@ -375,7 +433,7 @@ export default function ChatPage() {
               onDraftChange={setDraft}
               onSend={sendMessage}
               busy={busy}
-              onStop={() => store.stop(chat.id, tab.id)}
+              onStop={liveChat ? undefined : () => store.stop(chat.id, tab.id)}
               inputRef={inputRef}
             />
           </section>

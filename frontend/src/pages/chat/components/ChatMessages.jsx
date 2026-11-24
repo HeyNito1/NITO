@@ -31,7 +31,7 @@ export default function ChatMessages({ chat, busy, onRetry }) {
             ) : (
               <>
                 <div className={`whitespace-pre-wrap break-words ${message.status === "error" ? "text-red-300" : ""}`} role={message.status === "error" ? "alert" : undefined}>{message.text}</div>
-                {["error", "stopped"].includes(message.status) && message === chat.messages.at(-1) && <button className="mt-4 rounded-lg border border-white/30 px-3 py-2 text-xs" type="button" onClick={onRetry} disabled={busy}>Retry response</button>}
+                {onRetry && ["error", "stopped"].includes(message.status) && message === chat.messages.at(-1) && <button className="mt-4 rounded-lg border border-white/30 px-3 py-2 text-xs" type="button" onClick={onRetry} disabled={busy}>Retry response</button>}
                 {message.status === "complete" && <ReplyActions message={message} />}
               </>
             )}

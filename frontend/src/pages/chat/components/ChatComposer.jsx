@@ -207,7 +207,8 @@ export default function ChatComposer({
           {busy ? (
             <IconButton
               className="chat-send-button self-center! leading-none!"
-              label="Stop response"
+              label={onStop ? "Stop response" : "Waiting for reply"}
+              disabled={!onStop}
               variant="blue"
               onClick={onStop}
             >
