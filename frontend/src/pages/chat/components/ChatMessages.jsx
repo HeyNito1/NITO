@@ -27,7 +27,7 @@ export default function ChatMessages({ chat, busy, onRetry }) {
                 {message.attachments?.length > 0 && <ul aria-label="Message attachments" className="mt-3 flex flex-wrap gap-2">{message.attachments.map((file, index) => <li key={`${file.name}-${index}`} className="max-w-full rounded-lg border border-[#383838] px-3 py-2 text-xs"><span className="block break-all">{file.name}</span><span className="mt-1 block text-[10px] text-[#888]">Local attachment · {Math.max(1, Math.round(file.size / 1024))} KB</span></li>)}</ul>}
               </>
             ) : message.status === "pending" ? (
-              <p className="flex items-center gap-3 text-sm text-[#aaa]" role="status"><span className="spinner" />{env.useMocks ? "Preparing a demo reply…" : "Preparing a reply…"}</p>
+              <p className="flex items-center gap-3 text-sm text-[#aaa]" role="status"><span className="spinner" />{env.useMocks ? "Preparing a reply…" : "Preparing a reply…"}</p>
             ) : (
               <>
                 <div className={`whitespace-pre-wrap break-words ${message.status === "error" ? "text-red-300" : ""}`} role={message.status === "error" ? "alert" : undefined}>{message.text}</div>
