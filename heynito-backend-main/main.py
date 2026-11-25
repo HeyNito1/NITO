@@ -1,3 +1,5 @@
+import os
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 
 from backend.routes.chat_routes import router as chat_router
@@ -19,6 +21,24 @@ app = FastAPI(
     
     title="HeyNito Chatbot API",
     version="1.0.0"
+)
+
+# cors config added so that browser doesnt block requests from netlify.
+allowed_origins = [
+    origin.strip()
+    for origin in os.getenv(
+        "CORS_ORIGINS",
+        "http://localhost:5173,http://127.0.0.1:5173"
+    ).split(",")
+    if origin.strip()
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 logger = logging.getLogger(__name__)
