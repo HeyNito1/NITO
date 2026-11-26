@@ -58,6 +58,7 @@ class LoginRequest(BaseModel):
     password: str = Field(min_length=1, max_length=128)
 
 
+
 @router.post("/login")
 def login(request: LoginRequest):
     with SessionLocal() as session:
@@ -67,16 +68,24 @@ def login(request: LoginRequest):
             )
         )
 
-        if user is None or not verify_password( request.password, user.password_hash ):
+        if user is None:
             raise HTTPException(
-                status_code=401,
-                detail="Invalid email or password"
+                status_code=404,
+                detail="Account does not exist. Please sign up to create a new account."
             )
 
-        token = create_access_token(user.id) # issueing the JWT token ! 
+        if not verify_password(
+            request.password, user.password_hash
+        ):
+            raise HTTPException(
+                status_code=401,
+                detail="Incorrect password. Please try again."
+            )
+
+        token = create_access_token(user.id)
 
         return {
             "access_token": token,
-            "token_type": "bearer", # to tell request ke sath JWT token aaya h 
-            "expires_in": 3600 # 60 minutes 
+            "token_type": "bearer",
+            "expires_in": 3600
         }
