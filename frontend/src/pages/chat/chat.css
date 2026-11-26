@@ -473,3 +473,15 @@
     );
   }
 }
+.nito-personalized[data-theme="arctic"] .chat-new-button {
+  background: transparent;
+  border-color: transparent;
+}
+
+.nito-personalized[data-theme="arctic"] .chat-new-button:hover {
+  background: var(--sidebar-hover);
+}
+
+.nito-personalized[data-theme="arctic"] .chat-profile-avatar {
+  background: #b3b3b3;
+}

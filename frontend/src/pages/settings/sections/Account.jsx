@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router";
 import { settingsStore, useSettings } from "@/services/settingsStore";
 import {
@@ -24,18 +24,32 @@ const profileFields = [
 export function ProfileEditor({ onClose, field }) {
   const { data } = useSettings();
   const [draft, setDraft] = useState({ ...data.profile });
-  const { notify } = useNotice();
+  const formRef = useRef(null);
   const fields = field
     ? profileFields.filter(([key]) => key === field)
     : [["name", "Display name"], ["bio", "About you"], ...profileFields];
   return (
-    <Modal title="Edit personal information" onClose={onClose}>
+    <Modal
+      title="Edit personal information"
+      onClose={onClose}
+      className="w-[min(94vw,800px)]! max-w-none!"
+      headerAction={
+        <button
+          className="settings-primary"
+          type="button"
+          onClick={() => formRef.current?.requestSubmit()}
+        >
+          Save changes
+        </button>
+      }
+    >
       <form
+        ref={formRef}
         onSubmit={(e) => {
           e.preventDefault();
           settingsStore.update("profile", draft);
-          notify("Profile saved in this browser.");
           onClose();
+          notify("Profile saved in this browser.", "success");
         }}
       >
         <div className="grid gap-4">
@@ -81,9 +95,6 @@ export function ProfileEditor({ onClose, field }) {
         </p>
         <div className="settings-dialog-actions">
           <Action onClick={onClose}>Cancel</Action>
-          <button className="settings-primary" type="submit">
-            Save changes
-          </button>
         </div>
       </form>
     </Modal>
@@ -180,18 +191,23 @@ export default function Account() {
           Device sessions become available when you connect an account.
         </Empty>
       </Card>
-      <Card title="Disable or Deletion">
+            
+      <Card
+        title="Disable or Deletion"
+        className="settings-account-danger"
+      >
         <Row
           label="Disable Account"
           description="Manage your account’s availability."
         >
           <Action
-            style={{ color: "#fff", fontWeight: 700, fontSize: "24px" }}
+            aria-label="Disable Account"
             onClick={() => setInfo("disable")}
           >
             ›
           </Action>
         </Row>
+
         <Row
           label="Delete Account"
           description="Permanently remove your account and its data."
@@ -199,13 +215,13 @@ export default function Account() {
         >
           <Action
             aria-label="Delete Account"
-            style={{ color: "#fff", fontWeight: 700, fontSize: "22px" }}
             onClick={() => setInfo("delete")}
           >
             ›
           </Action>
         </Row>
       </Card>
+
       {info && (
         <Modal
           title={

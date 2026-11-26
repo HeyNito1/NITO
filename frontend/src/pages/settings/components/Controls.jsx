@@ -70,7 +70,15 @@ export function Select({ label, value, onChange, options }) {
     </select>
   );
 }
-export function Modal({ title, children, onClose }) {
+
+export function Modal({
+  title,
+  children,
+  onClose,
+  className = "",
+  headerAction,
+}) {
+
   const ref = useRef(null);
   useEffect(() => {
     const previous = document.activeElement;
@@ -84,7 +92,7 @@ export function Modal({ title, children, onClose }) {
   return (
     <dialog
       ref={ref}
-      className="settings-modal"
+      className={`settings-modal ${className}`}
       aria-labelledby="settings-modal-title"
       onCancel={(e) => {
         e.preventDefault();
@@ -103,18 +111,23 @@ export function Modal({ title, children, onClose }) {
         }
       }}
     >
-      <header className="mb-5 flex items-center justify-between gap-5">
+      <header className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <h2 id="settings-modal-title" className="text-xl">
           {title}
         </h2>
-        <button
-          type="button"
-          className="settings-action"
-          aria-label="Close dialog"
-          onClick={onClose}
-        >
-          ×
-        </button>
+
+        <div className="flex shrink-0 items-center gap-3">
+          {headerAction}
+
+          <button
+            type="button"
+            className="settings-action"
+            aria-label="Close dialog"
+            onClick={onClose}
+          >
+            ×
+          </button>
+        </div>
       </header>
       {children}
     </dialog>

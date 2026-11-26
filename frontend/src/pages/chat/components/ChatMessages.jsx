@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import ReplyActions from "./ReplyActions";
 import { env } from "@/config/env";
-
+import MessageContent from "./MessageContent";
 
 
 export default function ChatMessages({ chat, busy, onRetry }) {
@@ -17,8 +17,8 @@ export default function ChatMessages({ chat, busy, onRetry }) {
             key={message.id}
             className={
               message.role === "user"
-                ? "chat-user-message text-[22.222px]! leading-[1.4]! max-[1200px]:text-[17px]! max-[800px]:text-[15px]!"
-                : "chat-assistant-message"
+                ? "chat-user-message text-[14px]! leading-[1.5]!"
+                : "chat-assistant-message text-[15px] leading-[1.5]"
             }
             aria-label={message.role === "user" ? "You" : "NITO"}
           >            {message.role === "user" ? (
@@ -30,7 +30,16 @@ export default function ChatMessages({ chat, busy, onRetry }) {
               <p className="flex items-center gap-3 text-sm text-[#aaa]" role="status"><span className="spinner" />{env.useMocks ? "Preparing a reply…" : "Preparing a reply…"}</p>
             ) : (
               <>
-                <div className={`whitespace-pre-wrap break-words ${message.status === "error" ? "text-red-300" : ""}`} role={message.status === "error" ? "alert" : undefined}>{message.text}</div>
+                {message.status === "error" ? (
+              <div
+                className="whitespace-pre-wrap break-words text-red-500"
+                role="alert"
+              >
+                {message.text}
+              </div>
+            ) : (
+              <MessageContent text={message.text} />
+            )}
                 {onRetry && ["error", "stopped"].includes(message.status) && message === chat.messages.at(-1) && <button className="mt-4 rounded-lg border border-white/30 px-3 py-2 text-xs" type="button" onClick={onRetry} disabled={busy}>Retry response</button>}
                 {message.status === "complete" && <ReplyActions message={message} />}
               </>

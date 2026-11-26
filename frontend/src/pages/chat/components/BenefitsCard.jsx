@@ -51,7 +51,7 @@ export default function BenefitsCard() {
               {benefits.map((item) => (
                 <li
                   key={item}
-                  className="flex items-center gap-[14px] text-[15px] leading-[21px] text-[#9a9a9a]"
+                  className="flex items-center gap-[14px] text-[15px] leading-[21px] text-[var(--nito-muted)]"
                 >
                   <svg
                     width="14"
@@ -59,7 +59,7 @@ export default function BenefitsCard() {
                     viewBox="0 0 14 14"
                     fill="none"
                     aria-hidden="true"
-                    className="shrink-0 text-[#bdbdbd]"
+                    className="shrink-0 text-[var(--nito-text)]"
                   >
                     <path
                       d="m2.5 7.4 3 3 6-6.4"
@@ -76,15 +76,15 @@ export default function BenefitsCard() {
 
             <button
               type="button"
-              className="flex h-[32px] w-full items-center justify-center gap-[6px] rounded-[8px] bg-white text-black"
+              className="flex h-[32px] w-full items-center justify-center gap-[6px] rounded-[8px] bg-[var(--nito-text)] text-[var(--nito-input)]"
             >
-              <s className="text-[12px] text-[#555]">₹ 3,999</s>
+              <s className="text-[12px] opacity-70">₹ 3,999</s>
               <span className="text-[17px] font-normal">
                 ₹ 999/Year
               </span>
             </button>
 
-            <p className="mt-[4px] flex items-center justify-center gap-[4px] text-[11px] text-[#8a8a8a]">
+            <p className="mt-[4px] flex items-center justify-center gap-[4px] text-[11px] text-[var(--nito-muted)]">
               Other Plans <span aria-hidden="true">→</span>
             </p>
           </div>

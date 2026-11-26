@@ -17,6 +17,8 @@ export default function ChatSidebar({
   conversations,
   activeId,
   open,
+  collapsed,
+  onExpand,
   onClose,
   onNavigate,
   onNew,
@@ -33,8 +35,130 @@ export default function ChatSidebar({
     chat.title.toLowerCase().includes(search.toLowerCase()),
   );
   useEffect(() => {
-    if (searchOpen) searchRef.current?.focus();
-  }, [searchOpen]);
+    if (searchOpen && (!collapsed || open)) {
+      searchRef.current?.focus();
+    }
+  }, [searchOpen, collapsed, open]);
+
+
+if (collapsed && !open) {
+  return (
+    <aside
+      id="chat-sidebar"
+      aria-label="Collapsed chat navigation"
+      className="hidden h-full w-[76px] flex-col items-center gap-1 px-2 text-[var(--sidebar-text)] min-[801px]:flex"
+    >
+      {/* Expand sidebar */}
+      <button
+        type="button"
+        onClick={onExpand}
+        title="Expand sidebar"
+        aria-label="Expand sidebar"
+        aria-expanded={false}
+        className="mb-5 flex h-[55px] w-full shrink-0 items-center justify-center rounded-lg hover:bg-[var(--sidebar-hover)]"
+      >
+        <span className="chat-chevron rotate-[225deg]!" />
+      </button>
+
+      {/* New chat */}
+      <button
+        type="button"
+        onClick={onNew}
+        title="New Chat"
+        aria-label="New Chat"
+        className="flex h-[50px] w-full shrink-0 items-center justify-center rounded-lg hover:bg-[var(--sidebar-hover)]"
+      >
+        <span className="chat-sidebar-icon">
+          <img
+            src="/assets/icons/chat/new-chat-icon.svg"
+            alt=""
+            width="25"
+            height="25"
+          />
+        </span>
+      </button>
+
+      {/* Workspace navigation */}
+      {workspaceItems.map(([name, icon]) => (
+        <button
+          key={name}
+          type="button"
+          title={name}
+          aria-label={name}
+          onClick={() => notify(`${name} is coming soon.`)}
+          className="flex h-[50px] w-full shrink-0 items-center justify-center rounded-lg hover:bg-[var(--sidebar-hover)]"
+        >
+          <span className="chat-sidebar-icon">
+            <img
+              src={`/assets/icons/chat/${icon}`}
+              alt=""
+            />
+          </span>
+        </button>
+      ))}
+
+      {/* Search chats */}
+      <button
+        type="button"
+        title="Search chats"
+        aria-label="Search chats"
+        onClick={() => {
+          setSearchOpen(true);
+          onExpand();
+        }}
+        className="flex h-[50px] w-full shrink-0 items-center justify-center rounded-lg hover:bg-[var(--sidebar-hover)]"
+      >
+        <svg
+          width="25"
+          height="25"
+          viewBox="0 0 25 25"
+          fill="none"
+          aria-hidden="true"
+        >
+          <circle
+            cx="10"
+            cy="10"
+            r="6.5"
+            stroke="currentColor"
+            strokeWidth="1.2"
+          />
+          <path
+            d="m15 15 7 7"
+            stroke="currentColor"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+          />
+        </svg>
+      </button>
+
+      <div className="flex-1" />
+
+      {/* Settings */}
+      <Link
+        to="/settings/account"
+        title="Settings"
+        aria-label="Settings"
+        className="mb-5 flex h-[50px] w-full shrink-0 items-center justify-center rounded-lg hover:bg-[var(--sidebar-hover)]"
+      >
+        <svg
+          width="25"
+          height="25"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z" />
+          <path d="M10 2h4l.6 3 2 .9 2.6-1.7 2.8 2.8-1.7 2.6.9 2 2.8.6v4l-3 .6-.9 2 1.7 2.6-2.8 2.8-2.6-1.7-2 .9-.6 3h-4l-.6-3-2-.9-2.6 1.7-2.8-2.8 1.7-2.6-.9-2L0 16v-4l3-.6.9-2L2.2 6.8 5 4l2.6 1.7 2-.9L10 2Z" transform="translate(2 0) scale(.83)" />
+        </svg>
+      </Link>
+    </aside>
+  );
+}
+
 
   return (
     <aside

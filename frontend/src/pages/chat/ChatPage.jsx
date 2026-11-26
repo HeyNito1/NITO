@@ -53,7 +53,6 @@ export default function ChatPage() {
 
   const inputRef = useRef(null);
   const menuRef = useRef(null);
-  const reopenRef = useRef(null);
   const drawerRef = useRef(null);
 
   const busy =
@@ -80,6 +79,22 @@ export default function ChatPage() {
   }, [loadHistory, notify, sessionToken]);
 
   useEffect(() => {
+    const media = window.matchMedia("(max-width: 800px)");
+
+    function handleResize(event) {
+      if (event.matches) {
+        setSidebarCollapsed(false);
+      }
+    }
+
+    media.addEventListener("change", handleResize);
+
+    return () => {
+      media.removeEventListener("change", handleResize);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!needsMessages || !sessionToken) return;
     const controller = new AbortController();
 
@@ -99,11 +114,6 @@ export default function ChatPage() {
   const category = tab?.category || newCategory;
   const title = chat?.title;
 
-  useEffect(() => {
-    if (sidebarCollapsed) {
-      reopenRef.current?.focus();
-    }
-  }, [sidebarCollapsed]);
 
   useEffect(() => {
     document.title = title ? `${title} · NITO` : "Chat with NITO";
@@ -261,7 +271,7 @@ export default function ChatPage() {
           min-[961px]:h-[125dvh]!
           ${
             sidebarCollapsed
-              ? "sidebar-collapsed min-[961px]:grid-cols-[minmax(0,1fr)_var(--chat-right)]!"
+              ? "sidebar-collapsed min-[801px]:grid-cols-[76px_minmax(0,1fr)]! min-[961px]:grid-cols-[76px_minmax(0,1fr)_var(--chat-right)]!"
               : "min-[961px]:grid-cols-[var(--chat-left)_minmax(0,1fr)_var(--chat-right)]!"
           }
         `}
@@ -280,11 +290,16 @@ export default function ChatPage() {
         />
       )}
 
-      <div ref={drawerRef} className="chat-sidebar-slot">
+      <div
+        ref={drawerRef}
+        className="chat-sidebar-slot min-[801px]:block!"
+      >
         <ChatSidebar
           conversations={store.conversations.filter((item) => !item.archived)}
           activeId={chatId}
           open={sidebarOpen}
+          collapsed={sidebarCollapsed}
+          onExpand={() => setSidebarCollapsed(false)}
           onClose={collapseSidebar}
           onNavigate={closeSidebar}
           onNew={newChat}
@@ -306,28 +321,6 @@ export default function ChatPage() {
           >
             ☰
           </button>
-
-          {sidebarCollapsed && (
-            <button
-              ref={reopenRef}
-              type="button"
-              className="chat-reopen-sidebar"
-              aria-label="Open chat navigation"
-              aria-expanded="false"
-              aria-controls="chat-sidebar"
-              onClick={() => {
-                setSidebarCollapsed(false);
-
-                requestAnimationFrame(() => {
-                  drawerRef.current
-                    ?.querySelector(".chat-close-sidebar")
-                    ?.focus();
-                });
-              }}
-            >
-              <span className="chat-chevron" aria-hidden="true" />
-            </button>
-          )}
 
           {chat && (
             <ChatTabs
@@ -411,7 +404,7 @@ export default function ChatPage() {
                         className={`chat-mode overflow-hidden rounded-[11px] border-0! bg-transparent! p-0! hover:bg-transparent! ${
                           category === value
                             ? "ring-1 ring-[#0066ff]"
-                            : "hover:ring-1 hover:ring-[#0066ff]"
+                            : "ring-1 ring-[var(--nito-line)] hover:ring-[#0066ff]"
                         }`}
                       >
                         <img
@@ -419,6 +412,9 @@ export default function ChatPage() {
                           alt=""
                           draggable={false}
                           className="block h-full w-full"
+                          style={{
+                            filter: "var(--mode-card-filter, none)",
+                          }}
                         />
                         <span className="sr-only">{label}</span>
                       </button>

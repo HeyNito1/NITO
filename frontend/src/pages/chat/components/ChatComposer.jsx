@@ -85,7 +85,7 @@ export default function ChatComposer({
         </p>
       )}
 
-        <p className="mb-[10px] text-center text-[14px]! leading-[20px]! text-[#8a8a8a]">
+        <p className="mb-[10px] text-center text-[14px]! leading-[20px]! text-[var(--nito-muted)]">
           NITO can make mistakes. Check important facts!
         </p>
 
@@ -93,9 +93,12 @@ export default function ChatComposer({
         onSubmit={submit}
         className="
           chat-compose-form
-          min-h-[64px]!
+          min-h-[44px]!
           px-[16px]!
-          py-[10px]!
+          py-[4px]!
+          bg-[var(--nito-input)]!
+          border-[var(--nito-line)]!
+          focus-within:border-[var(--nito-accent)]!
         "
         aria-label="Chat message"
       >
@@ -107,7 +110,7 @@ export default function ChatComposer({
             {attachments.map((file, index) => (
               <li
                 key={`${file.name}-${index}`}
-                className="flex max-w-full items-center gap-2 rounded-lg bg-[#181818] px-3 py-2 text-xs"
+                className="flex max-w-full items-center gap-2 rounded-lg border border-[var(--nito-line)] bg-[var(--nito-panel)] px-3 py-2 text-xs text-[var(--nito-text)]"
               >
                 <span className="truncate">
                   {file.name}
@@ -146,7 +149,7 @@ export default function ChatComposer({
           />
 
           <IconButton
-            className="chat-icon-button self-center! leading-none!"
+            className="chat-icon-button self-center! leading-none! text-[var(--nito-text)]!"
             label="Add attachment"
             disabled={busy}
             onClick={() =>
@@ -188,19 +191,21 @@ export default function ChatComposer({
             required
             className="
               max-h-36
-              min-h-[40px]!
+              min-h-[32px]!
               min-w-0
               flex-1
               resize-none
               border-0
               bg-transparent
-              py-[6px]!
-              text-[22.222px]!
-              leading-[28px]!
-              text-white
+              py-[4px]!
+              text-[14px]!
+              leading-[22px]!
+              text-[var(--nito-text)]
               outline-none!
-              placeholder:text-[#777]
+              placeholder:text-[var(--nito-muted)]
               max-[800px]:text-[17px]!
+              border-[var(--nito-line)]!
+              bg-[var(--nito-input)]!
             "
           />
 

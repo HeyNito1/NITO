@@ -151,6 +151,15 @@ export default function SettingsPage({ profile = false }) {
               </button>
             </div>
             <nav aria-label="Settings sections">
+              <Link
+                to={chatPath()}
+                onClick={close}
+                className="settings-nav-item settings-nav-back"
+              >
+                <span aria-hidden="true">←</span>
+                <span>Back to chat</span>
+              </Link>
+
               {sections.map(([id, label]) => (
                 <NavLink
                   key={id}
@@ -214,9 +223,11 @@ export default function SettingsPage({ profile = false }) {
               ›
             </button>
           )}
-          <Link to={chatPath()} className="settings-back-link">
-            ← Back to chat
-          </Link>
+          {profile && (
+            <Link to={chatPath()} className="settings-back-link">
+              ← Back to chat
+            </Link>
+          )}
         </header>
         <div
           key={location.pathname}

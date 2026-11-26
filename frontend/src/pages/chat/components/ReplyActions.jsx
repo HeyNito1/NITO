@@ -5,7 +5,7 @@ import {
 } from "react";
 
 const buttonClass =
-  "inline-flex h-[28px] w-[27px] shrink-0 items-center justify-center rounded transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-blue-500";
+  "inline-flex h-[24px] w-[24px] shrink-0 items-center justify-center rounded transition-colors hover:bg-[var(--sidebar-hover)] focus-visible:outline-2 focus-visible:outline-blue-500";
 
 export default function ReplyActions({ message }) {
   const [feedback, setFeedback] = useState(null);
@@ -131,7 +131,7 @@ export default function ReplyActions({ message }) {
   return (
     <div className="mt-4">
       <div
-        className="flex w-fit items-center gap-[10px]"
+        className="flex w-fit items-center gap-[6px] [&_img]:[filter:var(--sidebar-icon-filter)] [&_img]:opacity-60 [&_img]:hover:opacity-100"
         role="group"
         aria-label="Reply actions"
       >
@@ -224,7 +224,7 @@ export default function ReplyActions({ message }) {
           <button
             ref={moreRef}
             type="button"
-            className="flex h-[28px] w-[5px] flex-col items-center justify-center gap-[3px] rounded text-white/50 hover:text-white focus-visible:outline-2 focus-visible:outline-blue-500"
+            className="flex h-[28px] w-[5px] flex-col items-center justify-center gap-[3px] rounded text-[var(--nito-muted)] hover:text-[var(--nito-text)] focus-visible:outline-2 focus-visible:outline-blue-500"
             aria-label="More reply actions"
             title="More reply actions"
             aria-haspopup="menu"
@@ -256,13 +256,13 @@ export default function ReplyActions({ message }) {
             <div
               role="menu"
               aria-label="More reply actions"
-              className="absolute right-0 bottom-full z-20 mb-2 w-40 rounded-lg border border-white/20 bg-[#161616] p-1 shadow-xl"
+              className="absolute right-0 bottom-full z-20 mb-2 w-40 rounded-lg border border-[var(--nito-line)] bg-[var(--nito-input)] p-1 shadow-xl"
             >
               <button
                 type="button"
                 role="menuitem"
                 onClick={download}
-                className="w-full rounded px-3 py-2 text-left text-[13px] leading-5 text-white hover:bg-white/10"
+                className="w-full rounded px-3 py-2 text-left text-[13px] leading-5 text-[var(--nito-text)] hover:bg-[var(--sidebar-hover)]"
               >
                 Download reply
               </button>

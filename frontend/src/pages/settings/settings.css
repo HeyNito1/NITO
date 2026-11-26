@@ -45,22 +45,43 @@
   --nito-selected: #00234c;
 }
 .nito-personalized[data-theme="arctic"] {
-  --nito-canvas: #fff;
-  --nito-panel: #efefef;
-  --nito-text: #141414;
-  --nito-muted: #666;
-  --nito-input: #fff;
-  --nito-line: #0003;
+  color-scheme: light;
+
+  --sidebar-bg: #ffffff;
+  --sidebar-text: #171717;
+  --sidebar-muted: #666666;
+  --sidebar-card: #f5f5f5;
+  --sidebar-border: #e0e0e0;
+  --sidebar-hover: #eaeaea;
+  --sidebar-icon-filter: invert(1);
+--mode-card-filter: invert(1);
+  --nito-canvas: #f7f7f8;
+  --nito-panel: #ffffff;
+  --nito-text: #171717;
+  --nito-muted: #666666;
+  --nito-input: #ffffff;
+  --nito-line: #e0e0e0;
   --nito-selected: #e6efff;
 }
 @media (prefers-color-scheme: light) {
   .nito-personalized[data-mode="system"] {
-    --nito-canvas: #fff;
-    --nito-panel: #efefef;
-    --nito-text: #141414;
-    --nito-muted: #666;
-    --nito-input: #fff;
-    --nito-line: #0003;
+    color-scheme: light;
+
+    --sidebar-bg: #ffffff;
+    --sidebar-text: #171717;
+    --sidebar-muted: #666666;
+    --mode-card-filter: invert(1);
+    --sidebar-card: #f5f5f5;
+    --sidebar-border: #e0e0e0;
+    --sidebar-hover: #eaeaea;
+    --sidebar-icon-filter: invert(1);
+
+    --nito-canvas: #f7f7f8;
+    --nito-panel: #ffffff;
+    --nito-text: #171717;
+    --nito-muted: #666666;
+    --nito-input: #ffffff;
+    --nito-line: #e0e0e0;
     --nito-selected: #e6efff;
   }
 }
@@ -1204,4 +1225,100 @@
 .nito-personalized .chat-updates-empty {
   color: var(--sidebar-muted);
   border-color: var(--sidebar-border);
+}
+
+/* Compact account management section */
+.settings-account-danger .settings-card-heading {
+  height: 42px;
+}
+
+.settings-account-danger .settings-card-heading h2 {
+  font-size: 14px;
+}
+
+.settings-account-danger .settings-card-body {
+  padding-top: 8px;
+  padding-bottom: 10px;
+}
+
+.settings-account-danger .settings-row {
+  font-size: 12px;
+  min-height: 40px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.settings-account-danger .settings-row .settings-muted {
+  font-size: 11px;
+}
+
+.settings-account-danger .settings-action {
+  font-size: 16px;
+  min-height: 28px;
+  padding: 3px 9px;
+}
+
+/* Back to chat in settings navigation */
+.settings-nav-back {
+  gap: 10px;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.settings-nav-back > span:first-child {
+  font-size: 22px;
+}
+
+/* Theme-aware conversation tabs */
+.nito-personalized .chat-tab-item {
+  background: var(--nito-panel);
+  border-color: var(--nito-line);
+  color: var(--nito-text);
+}
+
+.nito-personalized .chat-tab-item.is-active {
+  background: var(--nito-selected);
+  border-color: var(--nito-accent);
+}
+
+.nito-personalized .chat-tab-close {
+  color: var(--nito-muted);
+}
+
+.nito-personalized .chat-tab-close:hover,
+.nito-personalized .chat-add-tab:hover {
+  color: var(--nito-text);
+  background: var(--sidebar-hover);
+}
+
+.nito-personalized .chat-user-message {
+  background: var(--nito-panel);
+  color: var(--nito-text);
+}
+
+.nito-personalized .chat-message-scroll {
+  scrollbar-color: var(--nito-muted) transparent;
+}
+
+/* Arctic appearance — white design reference */
+.nito-personalized[data-theme="arctic"] {
+  color-scheme: light;
+
+  --sidebar-bg: #ececec;
+  --sidebar-text: #141414;
+  --sidebar-muted: #858585;
+  --sidebar-card: #ececec;
+  --sidebar-border: #00000026;
+  --sidebar-hover: #e0e0e0;
+  --sidebar-icon-filter: invert(1);
+
+  --nito-canvas: #ffffff;
+  --nito-panel: #ececec;
+  --nito-text: #141414;
+  --nito-muted: #858585;
+  --nito-input: #ffffff;
+  --nito-line: #00000026;
+  --nito-selected: #e6efff;
+
+  --mode-card-filter: invert(1);
 }

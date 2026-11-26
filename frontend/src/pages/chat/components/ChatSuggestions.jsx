@@ -1,22 +1,8 @@
-import BenefitsCard from "./BenefitsCard";
-export default function ChatSuggestions({
-  onSuggest,
-}) {
-  const suggestions = [
-    [
-      "Continue building your Health app",
-      "Help me plan the next steps for building a health app.",
-    ],
-    [
-      "7-day Workout Routine",
-      "Help me put together a beginner-friendly 7-day workout routine.",
-    ],
-    [
-      "Understanding RAG",
-      "Explain retrieval-augmented generation and when I should use it.",
-    ],
-  ];
 
+import BenefitsCard from "./BenefitsCard";
+import { pageSuggestions } from "../data/promptSuggestions";
+
+export default function ChatSuggestions({ onSuggest }) {
   return (
     <aside
       className="
@@ -37,7 +23,7 @@ export default function ChatSuggestions({
       </h2>
 
       <div className="chat-suggestion-list">
-        {suggestions.map(([label, prompt]) => (
+        {pageSuggestions.map(([label, prompt]) => (
           <button
             key={label}
             type="button"
