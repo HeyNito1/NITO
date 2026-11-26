@@ -16,14 +16,26 @@ export default function SignupPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  const passwordsMismatch =
+    !isLogin &&
+    confirmPassword.length > 0 &&
+    password !== confirmPassword;
 
   function switchMode() {
     setIsLogin((current) => !current);
     setPassword("");
+    setConfirmPassword("");
     setShowPassword(false);
+    setShowConfirmPassword(false);
     setError("");
   }
 
@@ -32,8 +44,17 @@ export default function SignupPage() {
 
     if (isSubmitting) return;
 
-    setIsSubmitting(true);
     setError("");
+
+    // Validate passwords before creating an account
+    if (!isLogin && password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    let accountCreated = false;
 
     try {
       const credentials = {
@@ -41,48 +62,65 @@ export default function SignupPage() {
         password,
       };
 
-      if (isLogin) {
-        const result = await apiRequest("auth/login", {
-          method: "POST",
-          body: credentials,
-        });
-
-        if (
-          typeof result?.access_token !== "string" ||
-          !result.access_token
-        ) {
-          throw new Error("The server did not return a login token.");
-        }
-
-        sessionStorage.setItem(
-          "nito.accessToken",
-          result.access_token
-        );
-
-        notify("Logged in successfully.", "success");
-
-        navigate(chatPath(), { replace: true });
-      } else {
+      // Create account if the user is signing up
+      if (!isLogin) {
         await apiRequest("auth/signup", {
           method: "POST",
           body: credentials,
         });
 
-        notify(
-          "Account created successfully. Please log in.",
-          "success"
-        );
-
-        setIsLogin(true);
-        setPassword("");
-        setShowPassword(false);
+        accountCreated = true;
       }
-    } catch (error) {
-      const message =
-        error.message || "Something went wrong. Please try again.";
 
-      setError(message);
-      notify(message, "error");
+      // Log in both existing and newly registered users
+      const result = await apiRequest("auth/login", {
+        method: "POST",
+        body: credentials,
+      });
+
+      if (
+        typeof result?.access_token !== "string" ||
+        !result.access_token
+      ) {
+        throw new Error(
+          "The server did not return a login token."
+        );
+      }
+
+      // Store authentication token
+      sessionStorage.setItem(
+        "nito.accessToken",
+        result.access_token
+      );
+
+      notify(
+        isLogin
+          ? "Logged in successfully."
+          : "Account created successfully. Welcome to NITO!",
+        "success"
+      );
+
+      // Redirect directly to chat
+      navigate(chatPath(), { replace: true });
+    } catch (error) {
+      if (accountCreated) {
+        setIsLogin(true);
+        setConfirmPassword("");
+        setShowConfirmPassword(false);
+
+        const message =
+          "Your account was created successfully. Please log in to continue.";
+
+        setError(message);
+        notify(message, "error");
+      } else {
+        const message =
+          error.message ||
+          "Something went wrong. Please try again.";
+
+        setError(message);
+        notify(message, "error");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -93,7 +131,9 @@ export default function SignupPage() {
       <div className="mx-auto w-full max-w-[440px]">
         {/* Heading */}
         <h1 className="mb-3 text-center text-[clamp(30px,3vw,42px)] font-normal leading-tight tracking-[-1px] text-white">
-          {isLogin ? "Welcome back" : "Create your account"}
+          {isLogin
+            ? "Welcome back"
+            : "Create your account"}
         </h1>
 
         <p className="mb-9 text-center text-[15px] text-[#999]">
@@ -135,7 +175,9 @@ export default function SignupPage() {
                 isLogin ? "Password" : "Create a password"
               }
               autoComplete={
-                isLogin ? "current-password" : "new-password"
+                isLogin
+                  ? "current-password"
+                  : "new-password"
               }
               minLength={isLogin ? undefined : 8}
               maxLength={128}
@@ -152,19 +194,78 @@ export default function SignupPage() {
             <button
               type="button"
               aria-label={
-                showPassword ? "Hide password" : "Show password"
+                showPassword
+                  ? "Hide password"
+                  : "Show password"
               }
-              onClick={() => setShowPassword((current) => !current)}
+              onClick={() =>
+                setShowPassword((current) => !current)
+              }
               className="absolute right-5 top-1/2 -translate-y-1/2 cursor-pointer border-0 bg-transparent text-[13px] text-[#aaa] hover:text-white"
             >
               {showPassword ? "Hide" : "Show"}
             </button>
           </div>
 
+          {/* Confirm password — signup only */}
           {!isLogin && (
-            <p className="px-3 text-[12px] text-[#999]">
-              Password must contain at least 8 characters.
-            </p>
+            <>
+              <div className="relative">
+                <input
+                  type={
+                    showConfirmPassword
+                      ? "text"
+                      : "password"
+                  }
+                  name="confirmPassword"
+                  aria-label="Confirm password"
+                  aria-invalid={passwordsMismatch}
+                  placeholder="Confirm password"
+                  autoComplete="new-password"
+                  required
+                  minLength={8}
+                  maxLength={128}
+                  disabled={isSubmitting}
+                  value={confirmPassword}
+                  onChange={(event) => {
+                    setConfirmPassword(event.target.value);
+                    setError("");
+                  }}
+                  className={`${inputClass} pr-[76px] ${
+                    passwordsMismatch
+                      ? "border-red-500! focus:border-red-500!"
+                      : ""
+                  }`}
+                />
+
+                <button
+                  type="button"
+                  aria-label={
+                    showConfirmPassword
+                      ? "Hide confirm password"
+                      : "Show confirm password"
+                  }
+                  onClick={() =>
+                    setShowConfirmPassword(
+                      (current) => !current
+                    )
+                  }
+                  className="absolute right-5 top-1/2 -translate-y-1/2 cursor-pointer border-0 bg-transparent text-[13px] text-[#aaa] hover:text-white"
+                >
+                  {showConfirmPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+
+              {passwordsMismatch ? (
+                <p className="px-3 text-[12px] text-red-400">
+                  Passwords do not match.
+                </p>
+              ) : (
+                <p className="px-3 text-[12px] text-[#999]">
+                  Password must contain at least 8 characters.
+                </p>
+              )}
+            </>
           )}
 
           {/* Error message */}
@@ -180,8 +281,8 @@ export default function SignupPage() {
           {/* Submit button */}
           <button
             type="submit"
-            disabled={isSubmitting}
-            className="mt-1 h-[50px] w-full cursor-pointer rounded-full border-0 bg-[#0066ff] text-[16px] font-medium text-white transition-colors hover:bg-[#0055d9] disabled:cursor-wait disabled:opacity-60"
+            disabled={isSubmitting || passwordsMismatch}
+            className="mt-1 h-[50px] w-full cursor-pointer rounded-full border-0 bg-[#0066ff] text-[16px] font-medium text-white transition-colors hover:bg-[#0055d9] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting
               ? isLogin
