@@ -6,6 +6,8 @@ build/
 config.bat
 .venv/
 **/.venv/
+.env
+.env.*
 !.env.example
 .venv/
 __pycache__/
@@ -14,27 +16,3 @@ __pycache__/
 *.db-wal
 *.db-shm
 chroma_db/
-# Environment variables
-!.env.example
-
-# Virtual environments
-.venv/
-venv/
-myenv/
-
-# Python cache
-__pycache__/
-*.pyc
-*.pyo
-
-# Legacy database files
-*.db
-*.sqlite
-*.sqlite3
-chroma_db/
-
-# Logs
-*.log
-
-# macOS
-.DS_Store

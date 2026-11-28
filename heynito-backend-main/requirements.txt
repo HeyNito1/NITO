@@ -1,5 +1,6 @@
 fastapi
 uvicorn
+sqlalchemy
 psycopg[binary]
 python-dotenv
 PyJWT
@@ -7,6 +8,7 @@ pwdlib[argon2]
 email-validator
 python-multipart
 pypdf
+chromadb
 sentence-transformers
 langchain-classic
 langchain-openai
@@ -14,6 +16,3 @@ langchain-text-splitters
 groq
 stripe
 razorpay
-pymongo
-pymongo==4.20.2
-sqlalchemy==2.1.9

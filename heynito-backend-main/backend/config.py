@@ -4,8 +4,6 @@ from dotenv import load_dotenv
 load_dotenv()  # env variables loaded 
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-MONGODB_URI = os.getenv("MONGODB_URI")
-MONGODB_DB_NAME = os.getenv("MONGODB_DB_NAME", "nito")
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 LLAMA_API_KEY = os.getenv("LLAMA_API_KEY")
